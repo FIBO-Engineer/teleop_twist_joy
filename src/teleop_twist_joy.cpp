@@ -74,7 +74,7 @@ namespace teleop_twist_joy
 
     nh_param->param<int>("enable_button", pimpl_->enable_button, 0);
     nh_param->param<int>("enable_turbo_button", pimpl_->enable_turbo_button, -1);
-    nh_param->param<int>("timeout", pimpl_->timeout, 0.0);
+    nh_param->param<double>("timeout", pimpl_->timeout, 0.0);
 
     if (nh_param->getParam("axis_linear", pimpl_->axis_linear_map))
     {
@@ -158,16 +158,19 @@ namespace teleop_twist_joy
 
   void TeleopTwistJoy::Impl::joyCallback(const sensor_msgs::Joy::ConstPtr &joy_msg)
   {
-    if (enable_turbo_button >= 0 &&
-        joy_msg->buttons.size() > enable_turbo_button &&
-        joy_msg->buttons[enable_turbo_button])
+    if (timeout == 0.0 || ros::Duration(timeout) > (joy_msg->header.stamp - ros::Time::now()))
     {
-      sendCmdVelMsg(joy_msg, "turbo");
-    }
-    else if (joy_msg->buttons.size() > enable_button &&
-             joy_msg->buttons[enable_button])
-    {
-      sendCmdVelMsg(joy_msg, "normal");
+      if (enable_turbo_button >= 0 &&
+          joy_msg->buttons.size() > enable_turbo_button &&
+          joy_msg->buttons[enable_turbo_button])
+      {
+        sendCmdVelMsg(joy_msg, "turbo");
+      }
+      else if (joy_msg->buttons.size() > enable_button &&
+               joy_msg->buttons[enable_button])
+      {
+        sendCmdVelMsg(joy_msg, "normal");
+      }
     }
     else
     {
