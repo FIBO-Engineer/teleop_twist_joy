@@ -158,8 +158,9 @@ namespace teleop_twist_joy
 
   void TeleopTwistJoy::Impl::joyCallback(const sensor_msgs::Joy::ConstPtr &joy_msg)
   {
-    if (timeout == 0.0 || ros::Duration(timeout) > (joy_msg->header.stamp - ros::Time::now()))
+    if (timeout == 0.0 || ros::Duration(timeout) > (ros::Time::now() - joy_msg->header.stamp))
     {
+      // ROS_INFO("timeout: %f, diff = %f", timeout, (ros::Time::now() - joy_msg->header.stamp).toSec());
       if (enable_turbo_button >= 0 &&
           joy_msg->buttons.size() > enable_turbo_button &&
           joy_msg->buttons[enable_turbo_button])
@@ -171,9 +172,22 @@ namespace teleop_twist_joy
       {
         sendCmdVelMsg(joy_msg, "normal");
       }
+      else
+      {
+        // When enable button is released, immediately send a single no-motion command
+        // in order to stop the robot.
+        if (!sent_disable_msg)
+        {
+          // Initializes with zeros by default.
+          geometry_msgs::Twist cmd_vel_msg;
+          cmd_vel_pub.publish(cmd_vel_msg);
+          sent_disable_msg = true;
+        }
+      }
     }
     else
     {
+      ROS_WARN("Timeout: %f, diff = %f", timeout, (ros::Time::now() - joy_msg->header.stamp).toSec());
       // When enable button is released, immediately send a single no-motion command
       // in order to stop the robot.
       if (!sent_disable_msg)
