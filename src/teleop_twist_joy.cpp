@@ -158,6 +158,8 @@ namespace teleop_twist_joy
     ackermann_vel_msg.speed = cmd_vel_msg.linear.x;
     ackermann_vel_msg.steering_angle = cmd_vel_msg.angular.z;
 
+    ackermann_vel_pub.publish(ackermann_vel_msg);
+
     sent_disable_msg = false;
   }
 
