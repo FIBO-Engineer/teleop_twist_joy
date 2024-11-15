@@ -71,7 +71,11 @@ namespace teleop_twist_joy
 
     pimpl_->cmd_vel_pub = nh->advertise<geometry_msgs::Twist>("cmd_vel", 1, true);
     pimpl_->ackermann_vel_pub = nh->advertise<ackermann_msgs::AckermannDrive>("ackermann_vel", 1, true);
-    pimpl_->joy_sub = nh->subscribe<sensor_msgs::Joy>("joy", 1, &TeleopTwistJoy::Impl::joyCallback, pimpl_);
+    
+    ros::TransportHints hints;
+    hints.udp();
+
+    pimpl_->joy_sub = nh->subscribe<sensor_msgs::Joy>("joy", 1, &TeleopTwistJoy::Impl::joyCallback, pimpl_, hints);
 
     nh_param->param<int>("enable_button", pimpl_->enable_button, 0);
     nh_param->param<int>("enable_turbo_button", pimpl_->enable_turbo_button, -1);
